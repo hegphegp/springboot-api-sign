@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<script type="text/javascript">
+    // 判断数据类型  https://www.jb51.net/article/70824.htm
+    function sortObj(obj) {
+        let isArray = obj instanceof Array;
+        if (isArray) {
+            let arr = new Array();
+            for (let i = 0; i < obj.length; i++) {
+                arr.push(sortObj(obj[i]));
+            }
+            return arr;
+        } else {
+            // obj instanceof 检测不了基本数据类型
+            let isNumber = obj.constructor==Number;
+            let isString = obj.constructor==String;
+            let isBoolean = obj.constructor==Boolean;
+            let isFunction = obj.constructor==Function;
+            let isDate = obj.constructor==Date;
+            let isRegExp = obj.constructor==RegExp;
+            let isError = obj.constructor==Error;
+            if (isNumber || isString || isBoolean || isFunction || isDate || isRegExp || isError) {
+                return obj;
+            }
+            let map = {};
+            Object.keys(obj).sort().forEach(function(key) {
+                let value = obj[key];
+                value = sortObj(value);
+                map[key] = value;
+            });
+            return map;
+        }
+    }
+
+    let list = ["dddd666",{"sss":"sss0","bbb":"bbb0","ddd":"ddd0","map":{"sss":"sss0","dddd":"ccc0"},"ggg":"ggg0","dddd":"ccc0"},true,false,1,2,34,5,{"sss":"sss1","bbb":"bbb1","ddd":"ddd1","map":{"sss":"sss1","dddd":"ccc1"},"ggg":"ggg1","dddd":"ccc1"},{"sss":"sss2","bbb":"bbb2","ddd":"ddd2","map":{"sss":"sss2","dddd":"ccc2"},"ggg":"ggg2","dddd":"ccc2"},{"sss":"sss3","bbb":"bbb3","ddd":"ddd3","map":{"sss":"sss3","dddd":"ccc3"},"ggg":"ggg3","dddd":"ccc3"},{"sss":"sss4","bbb":"bbb4","ddd":"ddd4","map":{"sss":"sss4","dddd":"ccc4"},"ggg":"ggg4","dddd":"ccc4"},{"sss":"sss5","bbb":"bbb5","ddd":"ddd5","map":{"sss":"sss5","dddd":"ccc5"},"ggg":"ggg5","dddd":"ccc5"}];
+    let jsonStr = JSON.stringify(list);
+    list = JSON.parse(jsonStr);
+    let result = sortObj(list);
+    console.log(result);
+    console.log(JSON.stringify(result))
+</script>
+</body>
+</html>
