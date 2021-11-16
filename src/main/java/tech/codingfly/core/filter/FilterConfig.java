@@ -39,6 +39,9 @@ public class FilterConfig {
     public FilterRegistrationBean<RateLimiterFilter> rateLimiterFilter() {
         FilterRegistrationBean registration = new FilterRegistrationBean();
         registration.setFilter(new RateLimiterFilter(oneSecondRateLimiter, oneSecondOneUrlRateLimiter, oneSecondOneIpRateLimiter, applicationContext));
+        List<String> urlList = new ArrayList();
+        urlList.add("/*");
+        registration.setUrlPatterns(urlList);
         registration.setName("rateLimiterFilter");
         registration.setOrder(Integer.MIN_VALUE);
         return registration;
