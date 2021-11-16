@@ -26,9 +26,11 @@ public class FilterConfig {
     private long maxAge;
 
     @Value("${rate-limiter.one-second.limit:600}")
-    private Double oneSecondRateLimiter = 1000d;
+    private Double oneSecondRateLimiter = 600d;
     @Value("${rate-limiter.one-second.one-url.limit:80}")
-    private Double oneSecondOneUrlRateLimiter = 100d;
+    private Double oneSecondOneUrlRateLimiter = 80d;
+    @Value("${rate-limiter.one-second.one-ip.limit:20}")
+    private Double oneSecondOneIpRateLimiter = 20d;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -36,7 +38,7 @@ public class FilterConfig {
     @Bean
     public FilterRegistrationBean<RateLimiterFilter> rateLimiterFilter() {
         FilterRegistrationBean registration = new FilterRegistrationBean();
-        registration.setFilter(new RateLimiterFilter(oneSecondRateLimiter, oneSecondOneUrlRateLimiter, applicationContext));
+        registration.setFilter(new RateLimiterFilter(oneSecondRateLimiter, oneSecondOneUrlRateLimiter, oneSecondOneIpRateLimiter, applicationContext));
         registration.setName("rateLimiterFilter");
         registration.setOrder(Integer.MIN_VALUE);
         return registration;

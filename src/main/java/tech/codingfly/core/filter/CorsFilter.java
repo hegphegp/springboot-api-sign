@@ -41,7 +41,7 @@ public class CorsFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		if (CorsUtils.isCorsRequest(request)) {
-			CorsConfiguration corsConfiguration = getCorsConfiguration(request);
+			CorsConfiguration corsConfiguration = getCorsConfiguration();
 			if (corsConfiguration != null) {
 				boolean isValid = this.processor.processRequest(corsConfiguration, request, response);
 				if (!isValid || CorsUtils.isPreFlightRequest(request)) {
@@ -53,7 +53,7 @@ public class CorsFilter extends OncePerRequestFilter {
 		filterChain.doFilter(request, response);
 	}
 
-	protected CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+	protected CorsConfiguration getCorsConfiguration() {
 		if (config == null) {
 			config = new CorsConfiguration();
 			config.setAllowCredentials(true);
@@ -62,7 +62,6 @@ public class CorsFilter extends OncePerRequestFilter {
 			config.setAllowedMethods(Arrays.asList(allowMethods));
 			config.setMaxAge(maxAge);
 		}
-
 		return config;
 	}
 }

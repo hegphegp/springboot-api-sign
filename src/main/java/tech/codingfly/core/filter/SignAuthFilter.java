@@ -68,7 +68,7 @@ public class SignAuthFilter extends OncePerRequestFilter {
                     request = requestWrapper;
                 }
                 // 拼接完整的URL和私钥
-                sb.append(ServletUtils.getOriginSchemeHostUrl()+appSecret);
+                sb.append(ServletUtils.getOriginSchemeHostUrl(request)+appSecret);
                 boolean isSigned = SignUtils.checkMD5(sb.toString(), request.getHeader(Constant.SIGN));
                 // appId+timeStamp+nonce是否被攻击重复了，看redis是否有这个key
                 if (isSigned) {
@@ -79,12 +79,12 @@ public class SignAuthFilter extends OncePerRequestFilter {
             }
         }
 //        logger.info("签名校验失败");
-        assemblyResponse(response);
+        assemblyResponse(request, response);
     }
 
-    private void assemblyResponse(HttpServletResponse response) throws IOException {
+    private void assemblyResponse(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(500);
-        String url = ServletUtils.getOriginSchemeHostUrl();
+        String url = ServletUtils.getOriginSchemeHostUrl(request);
         Map map = new HashMap() {{
             put("code", 500);
             put("msg", "签名校验失败");
