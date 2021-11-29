@@ -9,3 +9,6 @@ appId+appId值+timeStamp+timeStamp值+nonce+nonce值+URL参数排序后的key+va
 http://localhost:8080/v1/get?aa=11&aa=22&aa=33
 aa=11,22,33 这种组合方式加签
 ```
+
+#### 定下规章制度，只追求简洁，禁止过度复杂坑自己。要知道有哪些坑，参数要规范，禁止为了配置参数多样性，写各种if else坑自己后期维护
+* 禁止设置server.servlet.context-path取值，否则代码要判断context-path取值，导致多出几个if else

@@ -7,7 +7,7 @@ import java.util.UUID;
  */
 public abstract class UUIDUtils {
 
-    private static final char[] _UU64 = { //
+    private static final char[] BASE64 = { //
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', //
             'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', //
             'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', //
@@ -64,18 +64,18 @@ public abstract class UUIDUtils {
         // 从L64位取10次，每次取6位
         for (int off = 58; off >= 4; off -= 6) {
             long hex = (left & (mask << off)) >>> off;
-            cs[index++] = _UU64[(int) hex];
+            cs[index++] = BASE64[(int) hex];
         }
         // 从L64位取最后的4位 ＋ R64位头2位拼上
         int l = (int) (((left & 0xF) << 2) | ((right & (3 << 62)) >>> 62));
-        cs[index++] = _UU64[l];
+        cs[index++] = BASE64[l];
         // 从R64位取10次，每次取6位
         for (int off = 56; off >= 2; off -= 6) {
             long hex = (right & (mask << off)) >>> off;
-            cs[index++] = _UU64[(int) hex];
+            cs[index++] = BASE64[(int) hex];
         }
         // 剩下的两位最后取
-        cs[index++] = _UU64[(int) (right & 3)];
+        cs[index++] = BASE64[(int) (right & 3)];
         // 返回字符串
         return new String(cs);
     }

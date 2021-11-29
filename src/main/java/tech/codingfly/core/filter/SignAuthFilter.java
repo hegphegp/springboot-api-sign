@@ -52,15 +52,22 @@ public class SignAuthFilter extends OncePerRequestFilter {
         }
 
         //校验头部是否有验签参数
-        boolean isValid = SignUtils.verifyHeaderParams(request);
+        boolean isValid = SignUtils.headerParamsIsValid(request);
         if (isValid) {
             //根据调用传递的appId获取对应的appSecret（应用密钥）
             String appSecret = Constant.appIdMap.get(request.getHeader(Constant.APP_ID));
+            Boolean exists = Constant.hasUseReqNonceCache.getIfPresent(request.getHeader(Constant.APP_ID)+request.getHeader(Constant.NONCE));
+            if (exists!=null) {
+                logger.info("请求被重放");
+                assemblyResponse(request, response);
+                return;
+            }
             //appSecret（应用密钥）存在
             if (StringUtils.isNotEmpty(appSecret)) {
+                Constant.hasUseReqNonceCache.put(request.getHeader(Constant.APP_ID)+request.getHeader(Constant.NONCE), true);
                 StringBuilder sb = SignUtils.combineHeaderRequestParam(request);
                 String contentType = request.getContentType()!=null? request.getContentType().toLowerCase():"";
-                if (hasBodyMethods.contains(request.getMethod().toUpperCase()) && request.getContentLength()>0 && contentType.contains("application/json")) {
+                if (hasBodyMethods.contains(request.getMethod().toUpperCase()) && request.getContentLength()>0 && contentType.contains("json")) {
                     //包装HttpServletRequest对象，缓存body数据，再次读取的时候将缓存的值写出,解决HttpServetRequest读取body只能一次的问题
                     BodyReaderHttpServletRequestWrapper requestWrapper = new BodyReaderHttpServletRequestWrapper(request);
                     Map map = SignUtils.getBodyJsonParams(requestWrapper);
@@ -68,8 +75,8 @@ public class SignAuthFilter extends OncePerRequestFilter {
                     request = requestWrapper;
                 }
                 // 拼接完整的URL和私钥
-                sb.append(ServletUtils.getOriginSchemeHostUrl(request)+appSecret);
-                boolean isSigned = SignUtils.checkMD5(sb.toString(), request.getHeader(Constant.SIGN));
+                sb.append(appSecret);
+                boolean isSigned = SignUtils.checkMd5Hash(sb.toString(), request.getHeader(Constant.SIGN));
                 // appId+timeStamp+nonce是否被攻击重复了，看redis是否有这个key
                 if (isSigned) {
 //                    logger.info("签名通过");
@@ -78,7 +85,7 @@ public class SignAuthFilter extends OncePerRequestFilter {
                 }
             }
         }
-//        logger.info("签名校验失败");
+        logger.info("签名校验失败");
         assemblyResponse(request, response);
     }
 

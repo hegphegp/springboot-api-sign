@@ -13,8 +13,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.DigestUtils;
 import tech.codingfly.core.constant.Constant;
-import tech.codingfly.core.util.SignUtils;
 
 import java.util.*;
 
@@ -30,18 +30,20 @@ public class SignTest {
             SortedMap<String, String> urlParams = new TreeMap();
             Map<String, Object> bodyParams = new HashMap();
             for (int i = 0; i < 3; i++) {
-                String uuidMD5 = SignUtils.getMD5(UUID.randomUUID().toString());
+                String uuidMD5 = UUID.randomUUID().toString();
                 bodyParams.put(uuidMD5, uuidMD5);
-                urlParams.put(SignUtils.getMD5(uuidMD5), uuidMD5);
+                urlParams.put(DigestUtils.md5DigestAsHex(uuidMD5.getBytes()), uuidMD5);
             }
-            httpPost(url, urlParams, bodyParams);
+            String timestamp = new Date().getTime()+"";
+            String nonce = UUID.randomUUID().toString();
+            for (int i = 0; i < 3; i++) {
+                httpPost(url, urlParams, bodyParams, timestamp, nonce);
+            }
         }
     }
 
-    public static void httpPost(String url, SortedMap<String, String> urlParams, Map<String, Object> bodyParams) throws Exception {
+    public static void httpPost(String url, SortedMap<String, String> urlParams, Map<String, Object> bodyParams, String timestamp, String nonce) throws Exception {
         String appId = "zs001";
-        String timestamp = new Date().getTime()+"";
-        String nonce = UUID.randomUUID().toString();
 
         StringBuilder sb = new StringBuilder(Constant.APP_ID+appId+Constant.TIME_STAMP+timestamp+Constant.NONCE+nonce);
 
@@ -62,9 +64,9 @@ public class SignTest {
             httpPost.setEntity(new StringEntity(JSON.toJSONString(bodyParams), "utf-8"));
             sb.append(JSON.toJSONString(bodyParams, SerializerFeature.MapSortField));
         }
-        sb.append(url+Constant.appIdMap.get(appId));
+        sb.append(Constant.appIdMap.get(appId));
         System.out.println("加签字符串====>>>>>"+sb.toString());
-        httpPost.addHeader(Constant.SIGN, SignUtils.getMD5(sb.toString()));
+        httpPost.addHeader(Constant.SIGN, DigestUtils.md5DigestAsHex(sb.toString().getBytes()));
         CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpPost);
         // 请求发送成功，并得到响应
         String respStr = EntityUtils.toString(response.getEntity(), "utf-8");

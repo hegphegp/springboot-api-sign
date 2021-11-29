@@ -5,7 +5,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
@@ -23,9 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -35,16 +32,17 @@ import java.util.stream.Collectors;
  * @date 20-5-27
  */
 public class RateLimiterFilter extends OncePerRequestFilter {
+    public final static ExecutorService executorService = Executors.newSingleThreadExecutor();
+
     private final Logger logger = LoggerFactory.getLogger(RateLimiterFilter.class);
 
     private byte[] errorMsgBytes = "{\"code\":500,\"msg\":\"限流\"}".getBytes();
 
     //存入URL 和 rateLimiter 的实列，保证 每个请求都是单列的
     private Map<String, RateLimiter> urlRateMap = new ConcurrentHashMap();
-    private RateLimiter rateLimiter = null;
+    private RateLimiter globalRateLimiter = null;
     private RateLimiter otherUrlsRateLimiter = RateLimiter.create(100d);
 
-    private Integer contextPathLength = 0;
     private PathMatcher pathMatcher = new AntPathMatcher();
     // URL有通配符, 或者占位符的Map
     private Set<String> patternUrls = new HashSet();
@@ -55,12 +53,7 @@ public class RateLimiterFilter extends OncePerRequestFilter {
                              Double oneSecondOneIpRateLimiter, ApplicationContext applicationContext) {
         // 初始化IP访问次数限制的工具类
         Constant.initIpRateLimiterCache(oneSecondOneIpRateLimiter);
-        rateLimiter = RateLimiter.create(oneSecondRateLimiter);
-        ServerProperties serverProperties = applicationContext.getBean(ServerProperties.class);
-        String contextPath = serverProperties.getServlet().getContextPath();
-        if (StringUtils.isNotBlank(contextPath)) {
-            contextPathLength = contextPath.length();
-        }
+        globalRateLimiter = RateLimiter.create(oneSecondRateLimiter);
         RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
         Map<RequestMappingInfo, HandlerMethod> handlerMethods = mapping.getHandlerMethods();// 就是这个
         for (RequestMappingInfo rmi : handlerMethods.keySet()) {
@@ -84,7 +77,7 @@ public class RateLimiterFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String ip = ServletUtils.getCurrentRequestOriginIp(request);
         // 全局限流，等待5毫秒
-        boolean result = rateLimiter.tryAcquire(5, TimeUnit.MICROSECONDS);
+        boolean result = globalRateLimiter.tryAcquire(5, TimeUnit.MICROSECONDS);
         if (result==false) {
             assemblyResponse(response);
             logger.error("触发全局限流");
@@ -103,7 +96,7 @@ public class RateLimiterFilter extends OncePerRequestFilter {
                 e.printStackTrace();
             }
         }
-        String requestURI = contextPathLength>0? request.getRequestURI().substring(contextPathLength):request.getRequestURI();
+        String requestURI = request.getRequestURI();
 //        logger.debug("请求的URL是  "+request.getMethod()+" "+requestURI);
         String methodUrl = null;
         if (directUrls.contains(request.getMethod()+" "+requestURI)) { //对该URL镜像权限拦截
