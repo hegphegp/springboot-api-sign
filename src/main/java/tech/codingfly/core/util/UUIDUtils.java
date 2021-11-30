@@ -7,20 +7,26 @@ import java.util.UUID;
  */
 public abstract class UUIDUtils {
 
-    private static final char[] BASE64 = { //
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', //
-            'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', //
-            'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', //
-            'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', //
-            'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', //
-            'o', 'p', 'q', 'r', 's', 't', 'u', 'v', //
-            'w', 'x', 'y', 'z', '0', '1', '2', '3', //
-            '4', '5', '6', '7', '8', '9', '-', '_' //
+    private static final char[] BASE64 = {
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+        'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+        'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+        'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+        'w', 'x', 'y', 'z', '0', '1', '2', '3',
+        '4', '5', '6', '7', '8', '9', '-', '_'
     };
     
     public static void main(String[] args) {
         for (int i = 0; i < 100; i++) {
-            System.out.println(UU64());
+            while (true) {
+                String base64Id = UU64();
+                if (!base64Id.contains("_") && !base64Id.contains("-")) {
+                    System.out.println(base64Id);
+                    break;
+                }
+            }
         }
     }
 
@@ -58,9 +64,9 @@ public abstract class UUIDUtils {
     }
 
     public static String UU64(long left, long right) {
-        int    index = 0;
-        char[] cs    = new char[22];
-        long mask  = 63;
+        int index = 0;
+        char[] cs = new char[22];
+        long mask = 63;
         // 从L64位取10次，每次取6位
         for (int off = 58; off >= 4; off -= 6) {
             long hex = (left & (mask << off)) >>> off;
