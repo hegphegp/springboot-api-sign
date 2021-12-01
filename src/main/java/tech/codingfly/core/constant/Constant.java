@@ -30,193 +30,82 @@ public class Constant {
             .maximumSize(100000) // 设置缓存最大容量为100000，超过100000之后就会按照LRU最近虽少使用算法来移除缓存项
             .build();
 
-    public static Cache<String, Boolean> oneHourBlackIpsCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(60*3600, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(30) // 设置缓存容器的初始容量为1000
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
+    public static Cache<String, Boolean> oneMinuteBlackIpsCache = buildBlackIpsCache(60);
+    public static Cache<String, Boolean> fiveMinuteBlackIpsCache = buildBlackIpsCache(300);
+    public static Cache<String, Boolean> fifteenMinuteBlackIpsCache = buildBlackIpsCache(900);
+    public static Cache<String, Boolean> oneHourBlackIpsCache = buildBlackIpsCache(3600);
+    public static Cache<String, Boolean> oneDayBlackIpsCache = buildBlackIpsCache(3600*24);
 
-    public static Cache<String, Boolean> oneDayBlackIpsCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(60*3600*24, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(30) // 设置缓存容器的初始容量为100
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<Long, Boolean> oneHourBlackUserIdsCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(60*3600, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(100) // 设置缓存容器的初始容量为100
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Boolean> oneMinuteTokenCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(8) // 设置并发级别为8，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(60, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(100) // 设置缓存容器的初始容量为100
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
+    public static Cache<Long, Boolean> oneMinuteBlackUserIdsCache = buildBlackUserIdsCache(60);
+    public static Cache<Long, Boolean> fiveMinuteBlackUserIdsCache = buildBlackUserIdsCache(300);
+    public static Cache<Long, Boolean> fifteenMinuteBlackUserIdsCache = buildBlackUserIdsCache(900);
+    public static Cache<Long, Boolean> oneHourBlackUserIdsCache = buildBlackUserIdsCache(3600);
+    public static Cache<Long, Boolean> oneDayBlackUserIdsCache = buildBlackUserIdsCache(3600*24);
 
     // 记录访问次数
-    public static Cache<String, Integer> oneSecond1IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(1, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
+    public static Cache<String, Integer> oneSecond1IpVisitCountCache = buildIpVisitCountCache(1);
+    public static Cache<String, Integer> oneSecond2IpVisitCountCache = buildIpVisitCountCache(1);
+    public static Cache<String, Integer> oneSecond3IpVisitCountCache = buildIpVisitCountCache(1);
+    public static Cache<String, Integer> fiveSecond1IpVisitCountCache = buildIpVisitCountCache(4);
+    public static Cache<String, Integer> fiveSecond2IpVisitCountCache = buildIpVisitCountCache(4);
+    public static Cache<String, Integer> thirtySecond1IpVisitCountCache = buildIpVisitCountCache(28);
+    public static Cache<String, Integer> thirtySecond2IpVisitCountCache = buildIpVisitCountCache(28);
+    public static Cache<String, Integer> threeMinute1IpVisitCountCache = buildIpVisitCountCache(178);
+    public static Cache<String, Integer> threeMinute2IpVisitCountCache = buildIpVisitCountCache(178);
+    public static Cache<String, Integer> fifteenMinute1IpVisitCountCache = buildIpVisitCountCache(898);
+    public static Cache<String, Integer> fifteenMinute2IpVisitCountCache = buildIpVisitCountCache(898);
 
-    public static Cache<String, Integer> oneSecond2IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(1, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> oneSecond3IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(1, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> fiveSecond1IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(4, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> fiveSecond2IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(4, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> thirtySecond1IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(27, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> thirtySecond2IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(27, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> threeMinute1IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(175, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> threeMinute2IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(175, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> fifteenMinute1IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(895, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> fifteenMinute2IpVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(895, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> oneSecond1UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(1, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> oneSecond2UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(1, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> oneSecond3UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(1, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> fiveSecond1UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(4, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> fiveSecond2UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(4, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> thirtySecond1UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(27, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> thirtySecond2UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(27, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> threeMinute1UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(175, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> threeMinute2UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(175, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> fifteenMinute1UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(895, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
-
-    public static Cache<String, Integer> fifteenMinute2UserIdVisitCountCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
-            .expireAfterWrite(895, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
-            .initialCapacity(32) // 设置缓存容器的初始容量为32
-            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-            .build();
+    public static Cache<Long, Integer> oneSecond1UserIdVisitCountCache = buildUserIdVisitCountCache(1);
+    public static Cache<Long, Integer> oneSecond2UserIdVisitCountCache = buildUserIdVisitCountCache(1);
+    public static Cache<Long, Integer> oneSecond3UserIdVisitCountCache = buildUserIdVisitCountCache(1);
+    public static Cache<Long, Integer> fiveSecond1UserIdVisitCountCache = buildUserIdVisitCountCache(4);
+    public static Cache<Long, Integer> fiveSecond2UserIdVisitCountCache = buildUserIdVisitCountCache(4);
+    public static Cache<Long, Integer> thirtySecond1UserIdVisitCountCache = buildUserIdVisitCountCache(28);
+    public static Cache<Long, Integer> thirtySecond2UserIdVisitCountCache = buildUserIdVisitCountCache(28);
+    public static Cache<Long, Integer> threeMinute1UserIdVisitCountCache = buildUserIdVisitCountCache(178);
+    public static Cache<Long, Integer> threeMinute2UserIdVisitCountCache = buildUserIdVisitCountCache(178);
+    public static Cache<Long, Integer> fifteenMinute1UserIdVisitCountCache = buildUserIdVisitCountCache(895);
+    public static Cache<Long, Integer> fifteenMinute2UserIdVisitCountCache = buildUserIdVisitCountCache(895);
 
     static {
         appIdMap.put("zs001", "asd123fhg3b7fgh7dfg");
         appIdMap.put("ls001", "hghfgh123btgfyh1212");
+    }
+
+    public static Cache<Long, Boolean> buildBlackUserIdsCache(int expireSecond) {
+        return CacheBuilder.newBuilder()
+                .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
+                .expireAfterWrite(expireSecond, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
+                .initialCapacity(32) // 设置缓存容器的初始容量为32
+                .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
+                .build();
+    }
+
+    public static Cache<String, Boolean> buildBlackIpsCache(int expireSecond) {
+        return CacheBuilder.newBuilder()
+                .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
+                .expireAfterWrite(expireSecond, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
+                .initialCapacity(32) // 设置缓存容器的初始容量为32
+                .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
+                .build();
+    }
+
+    public static Cache<String, Integer> buildIpVisitCountCache(int expireSecond) {
+        return CacheBuilder.newBuilder()
+                .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
+                .expireAfterWrite(expireSecond, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
+                .initialCapacity(32) // 设置缓存容器的初始容量为32
+                .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
+                .build();
+    }
+
+    public static Cache<Long, Integer> buildUserIdVisitCountCache(int expireSecond) {
+        return CacheBuilder.newBuilder()
+                .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
+                .expireAfterWrite(expireSecond, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
+                .initialCapacity(32) // 设置缓存容器的初始容量为32
+                .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
+                .build();
     }
 
     public static void initIpRateLimiterCache(Double oneIpRateLimiter) {
