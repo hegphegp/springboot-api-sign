@@ -69,8 +69,8 @@ public class CounterTask implements Runnable {
             recordTimes(ip, Constant.fifteenMinute1IpVisitCountCache, 7200, Constant.oneDayBlackIpsCache,
                     userId, Constant.fifteenMinute1UserIdVisitCountCache, 1200, Constant.oneDayBlackUserIdsCache);
         } else {
-            recordTimes(ip, Constant.fifteenMinute1IpVisitCountCache, 7200, Constant.oneDayBlackIpsCache,
-                    userId, Constant.fifteenMinute1UserIdVisitCountCache, 1200, Constant.oneDayBlackUserIdsCache);
+            recordTimes(ip, Constant.fifteenMinute2IpVisitCountCache, 7200, Constant.oneDayBlackIpsCache,
+                    userId, Constant.fifteenMinute2UserIdVisitCountCache, 1200, Constant.oneDayBlackUserIdsCache);
         }
     }
 
