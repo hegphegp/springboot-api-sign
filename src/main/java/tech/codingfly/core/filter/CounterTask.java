@@ -8,6 +8,7 @@ import tech.codingfly.core.constant.Constant;
  * 这个task是当个线程池的线程执行的
  */
 public class CounterTask implements Runnable {
+
     private Long time;
     private String ip;
     private Long userId;
@@ -27,50 +28,50 @@ public class CounterTask implements Runnable {
         long second = time/1000;
         int result = (int)second%3;
         if (result==0) {
-            recordTimes(ip, Constant.oneSecond1IpVisitCountCache, 50, Constant.oneMinuteBlackIpsCache,
-                    userId, Constant.oneSecond1UserIdVisitCountCache, 10, Constant.oneMinuteBlackUserIdsCache);
+            recordTimes(ip, Constant.oneSecond1IpVisitCountCache, Constant.oneSecondIpMaxVisitCount, Constant.oneMinuteBlackIpsCache,
+                    userId, Constant.oneSecond1UserIdVisitCountCache, Constant.oneSecondUserIdMaxVisitCount, Constant.oneMinuteBlackUserIdsCache);
         } else if (result==1) {
-            recordTimes(ip, Constant.oneSecond2IpVisitCountCache, 50, Constant.oneMinuteBlackIpsCache,
-                    userId, Constant.oneSecond2UserIdVisitCountCache, 10, Constant.oneMinuteBlackUserIdsCache);
+            recordTimes(ip, Constant.oneSecond2IpVisitCountCache, Constant.oneSecondIpMaxVisitCount, Constant.oneMinuteBlackIpsCache,
+                    userId, Constant.oneSecond2UserIdVisitCountCache, Constant.oneSecondUserIdMaxVisitCount, Constant.oneMinuteBlackUserIdsCache);
         } else {
-            recordTimes(ip, Constant.oneSecond3IpVisitCountCache, 50, Constant.oneMinuteBlackIpsCache,
-                    userId, Constant.oneSecond3UserIdVisitCountCache, 10, Constant.oneMinuteBlackUserIdsCache);
+            recordTimes(ip, Constant.oneSecond3IpVisitCountCache, Constant.oneSecondIpMaxVisitCount, Constant.oneMinuteBlackIpsCache,
+                    userId, Constant.oneSecond3UserIdVisitCountCache, Constant.oneSecondUserIdMaxVisitCount, Constant.oneMinuteBlackUserIdsCache);
         }
 
         result = (int)(second/5)%2;
         if (result==0) {
-            recordTimes(ip, Constant.fiveSecond1IpVisitCountCache, 150, Constant.fiveMinuteBlackIpsCache,
-                    userId, Constant.fiveSecond1UserIdVisitCountCache, 30, Constant.fiveMinuteBlackUserIdsCache);
+            recordTimes(ip, Constant.fiveSecond1IpVisitCountCache, Constant.fiveSecondIpMaxVisitCount, Constant.fiveMinuteBlackIpsCache,
+                    userId, Constant.fiveSecond1UserIdVisitCountCache, Constant.fiveSecondUserIdMaxVisitCount, Constant.fiveMinuteBlackUserIdsCache);
         } else {
-            recordTimes(ip, Constant.fiveSecond2IpVisitCountCache, 150, Constant.fiveMinuteBlackIpsCache,
-                    userId, Constant.fiveSecond2UserIdVisitCountCache, 30, Constant.fiveMinuteBlackUserIdsCache);
+            recordTimes(ip, Constant.fiveSecond2IpVisitCountCache, Constant.fiveSecondIpMaxVisitCount, Constant.fiveMinuteBlackIpsCache,
+                    userId, Constant.fiveSecond2UserIdVisitCountCache, Constant.fiveSecondUserIdMaxVisitCount, Constant.fiveMinuteBlackUserIdsCache);
         }
 
         result = (int)(second/30)%2;
         if (result==0) {
-            recordTimes(ip, Constant.thirtySecond1IpVisitCountCache, 450, Constant.fifteenMinuteBlackIpsCache,
-                    userId, Constant.thirtySecond1UserIdVisitCountCache, 90, Constant.fifteenMinuteBlackUserIdsCache);
+            recordTimes(ip, Constant.thirtySecond1IpVisitCountCache, Constant.thirtySecondIpMaxVisitCount, Constant.fifteenMinuteBlackIpsCache,
+                    userId, Constant.thirtySecond1UserIdVisitCountCache, Constant.thirtySecondUserIdMaxVisitCount, Constant.fifteenMinuteBlackUserIdsCache);
         } else {
-            recordTimes(ip, Constant.thirtySecond2IpVisitCountCache, 450, Constant.fifteenMinuteBlackIpsCache,
-                    userId, Constant.thirtySecond2UserIdVisitCountCache, 90, Constant.fifteenMinuteBlackUserIdsCache);
+            recordTimes(ip, Constant.thirtySecond2IpVisitCountCache, Constant.thirtySecondIpMaxVisitCount, Constant.fifteenMinuteBlackIpsCache,
+                    userId, Constant.thirtySecond2UserIdVisitCountCache, Constant.thirtySecondUserIdMaxVisitCount, Constant.fifteenMinuteBlackUserIdsCache);
         }
 
         result = (int)(second/180)%2;
         if (result==0) {
-            recordTimes(ip, Constant.threeMinute1IpVisitCountCache, 1800, Constant.oneHourBlackIpsCache,
-                    userId, Constant.threeMinute1UserIdVisitCountCache, 360, Constant.oneHourBlackUserIdsCache);
+            recordTimes(ip, Constant.threeMinute1IpVisitCountCache, Constant.threeMinuteIpMaxVisitCount, Constant.oneHourBlackIpsCache,
+                    userId, Constant.threeMinute1UserIdVisitCountCache, Constant.threeMinuteUserIdMaxVisitCount, Constant.oneHourBlackUserIdsCache);
         } else {
-            recordTimes(ip, Constant.threeMinute2IpVisitCountCache, 1800, Constant.oneHourBlackIpsCache,
-                    userId, Constant.threeMinute2UserIdVisitCountCache, 360, Constant.oneHourBlackUserIdsCache);
+            recordTimes(ip, Constant.threeMinute2IpVisitCountCache, Constant.threeMinuteIpMaxVisitCount, Constant.oneHourBlackIpsCache,
+                    userId, Constant.threeMinute2UserIdVisitCountCache, Constant.threeMinuteUserIdMaxVisitCount, Constant.oneHourBlackUserIdsCache);
         }
 
         result = (int)(second/900)%2;
         if (result==0) {
-            recordTimes(ip, Constant.fifteenMinute1IpVisitCountCache, 7200, Constant.oneDayBlackIpsCache,
-                    userId, Constant.fifteenMinute1UserIdVisitCountCache, 1200, Constant.oneDayBlackUserIdsCache);
+            recordTimes(ip, Constant.fifteenMinute1IpVisitCountCache, Constant.fifteenMinuteIpMaxVisitCount, Constant.oneDayBlackIpsCache,
+                    userId, Constant.fifteenMinute1UserIdVisitCountCache, Constant.fifteenMinuteUserIdMaxVisitCount, Constant.oneDayBlackUserIdsCache);
         } else {
-            recordTimes(ip, Constant.fifteenMinute2IpVisitCountCache, 7200, Constant.oneDayBlackIpsCache,
-                    userId, Constant.fifteenMinute2UserIdVisitCountCache, 1200, Constant.oneDayBlackUserIdsCache);
+            recordTimes(ip, Constant.fifteenMinute2IpVisitCountCache, Constant.fifteenMinuteIpMaxVisitCount, Constant.oneDayBlackIpsCache,
+                    userId, Constant.fifteenMinute2UserIdVisitCountCache, Constant.fifteenMinuteUserIdMaxVisitCount, Constant.oneDayBlackUserIdsCache);
         }
     }
 

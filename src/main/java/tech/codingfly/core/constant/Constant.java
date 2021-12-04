@@ -42,6 +42,19 @@ public class Constant {
     public static Cache<Long, Boolean> oneHourBlackUserIdsCache = buildBlackUserIdsCache(3600);
     public static Cache<Long, Boolean> oneDayBlackUserIdsCache = buildBlackUserIdsCache(3600*24);
 
+    // 每次缩减为上一次次数 × 时间倍数 × 60%
+    public static Integer oneSecondIpMaxVisitCount = 50;
+    public static Integer fiveSecondIpMaxVisitCount = 150;
+    public static Integer thirtySecondIpMaxVisitCount = 540;
+    public static Integer threeMinuteIpMaxVisitCount = 1944;
+    public static Integer fifteenMinuteIpMaxVisitCount = 5832;
+
+    public static Integer oneSecondUserIdMaxVisitCount = 15;
+    public static Integer fiveSecondUserIdMaxVisitCount = 45;
+    public static Integer thirtySecondUserIdMaxVisitCount = 162;
+    public static Integer threeMinuteUserIdMaxVisitCount = 583;
+    public static Integer fifteenMinuteUserIdMaxVisitCount = 1750;
+
     // 记录访问次数
     public static Cache<String, Integer> oneSecond1IpVisitCountCache = buildIpVisitCountCache(1);
     public static Cache<String, Integer> oneSecond2IpVisitCountCache = buildIpVisitCountCache(1);
