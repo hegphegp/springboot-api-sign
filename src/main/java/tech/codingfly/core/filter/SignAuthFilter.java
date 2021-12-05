@@ -66,6 +66,7 @@ public class SignAuthFilter extends OncePerRequestFilter {
             assemblyResponse(802, "请求被重放", response);
             return;
         }
+        Constant.hasUseReqNonceCache.put(request.getHeader(Constant.APP_ID)+request.getHeader(Constant.NONCE), true);
         //根据调用传递的appId获取对应的appSecret（应用密钥）
         String appSecret = Constant.appIdMap.get(request.getHeader(Constant.APP_ID));
         if (StringUtils.isBlank(appSecret)) {
@@ -74,7 +75,6 @@ public class SignAuthFilter extends OncePerRequestFilter {
             return;
         }
         //appSecret（应用密钥）存在
-        Constant.hasUseReqNonceCache.put(request.getHeader(Constant.APP_ID)+request.getHeader(Constant.NONCE), true);
         StringBuilder sb = SignUtils.combineHeaderRequestParam(request);
         String contentType = request.getContentType()!=null? request.getContentType().toLowerCase():"";
         if (hasBodyMethods.contains(request.getMethod().toUpperCase()) && request.getContentLength()>0 && contentType.contains("json")) {

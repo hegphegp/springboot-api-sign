@@ -19,7 +19,8 @@ public abstract class UUIDUtils {
     };
     
     public static void main(String[] args) {
-        for (int i = 0; i < 100; i++) {
+        System.out.println(UU64(Long.MAX_VALUE, Long.MAX_VALUE));
+        for (int i = 0; i < 10; i++) {
             while (true) {
                 String base64Id = UU64();
                 if (!base64Id.contains("_") && !base64Id.contains("-")) {

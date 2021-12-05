@@ -27,8 +27,9 @@ public class SignUtils {
      * 有个很重要的一点，就是对此请求进行时间验证，如果大于10分钟表示此链接已经超时，防止别人来到这个链接去请求。这个就是防止盗链。
      */
     public static boolean headerParamsIsValid(boolean checkToken, HttpServletRequest request) {
-        if (StringUtils.isAnyBlank(request.getHeader(Constant.APP_ID), request.getHeader(Constant.NONCE),
-                request.getHeader(Constant.SIGN), request.getHeader(Constant.TIMESTAMP), request.getHeader(Constant.VALID))) {
+        String nonce = request.getHeader(Constant.NONCE);
+        if (StringUtils.isAnyBlank(request.getHeader(Constant.APP_ID), request.getHeader(Constant.SIGN),
+                nonce, request.getHeader(Constant.TIMESTAMP), request.getHeader(Constant.VALID))) {
             logger.debug("请求头签名参数或者valid为空");
             return false;
         }
@@ -38,7 +39,11 @@ public class SignUtils {
                 return false;
             }
         }
-
+        // 因为 nonce 流水号存到内存里面，为减少内存使用，限制nonce最大长度为uuid转成两个long后再转base64转换的长度
+        if (nonce.length()>23) {
+            logger.debug("请求头nonce长度过长为空");
+            return false;
+        }
         //时间戳,增加链接的有效时间,超过阈值,即失效
         String timeStamp = request.getHeader(Constant.TIMESTAMP);
         if (StringUtils.isNumeric(timeStamp)==false) {

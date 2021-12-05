@@ -15,6 +15,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.DigestUtils;
 import tech.codingfly.core.constant.Constant;
+import tech.codingfly.core.util.UUIDUtils;
 
 import java.util.*;
 
@@ -35,10 +36,10 @@ public class SignTest {
                 urlParams.put(DigestUtils.md5DigestAsHex(uuidMD5.getBytes()), uuidMD5);
             }
             String timestamp = new Date().getTime()+"";
-            String nonce = UUID.randomUUID().toString();
+            String nonce = UUIDUtils.UU64(UUID.randomUUID());
             String token = UUID.randomUUID().toString();
             httpPost(token, url, urlParams, bodyParams, timestamp, nonce);
-            Thread.sleep(100);
+            Thread.sleep(10);
         }
     }
 
