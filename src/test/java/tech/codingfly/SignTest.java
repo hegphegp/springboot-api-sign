@@ -36,16 +36,16 @@ public class SignTest {
             }
             String timestamp = new Date().getTime()+"";
             String nonce = UUID.randomUUID().toString();
-            for (int i = 0; i < 3; i++) {
-                httpPost(url, urlParams, bodyParams, timestamp, nonce);
-            }
+            String token = UUID.randomUUID().toString();
+            httpPost(token, url, urlParams, bodyParams, timestamp, nonce);
+            Thread.sleep(100);
         }
     }
 
-    public static void httpPost(String url, SortedMap<String, String> urlParams, Map<String, Object> bodyParams, String timestamp, String nonce) throws Exception {
+    public static void httpPost(String token, String url, SortedMap<String, String> urlParams, Map<String, Object> bodyParams, String timestamp, String nonce) throws Exception {
         String appId = "zs001";
 
-        StringBuilder sb = new StringBuilder(Constant.APP_ID+appId+Constant.TIME_STAMP+timestamp+Constant.NONCE+nonce);
+        StringBuilder sb = new StringBuilder(Constant.APP_ID+appId+Constant.TIMESTAMP+timestamp+Constant.NONCE+nonce);
 
         URIBuilder uriBuilder = new URIBuilder(url);
         for (String key:urlParams.keySet()) {
@@ -53,13 +53,15 @@ public class SignTest {
             uriBuilder.addParameter(key, value);
             sb.append(key+value);
         }
-
+        String valid =  DigestUtils.md5DigestAsHex((token+appId+timestamp).getBytes());
         HttpPost httpPost = new HttpPost(uriBuilder.build());
         httpPost.setConfig(requestConfig);
-        httpPost.addHeader("Content-Type", "application/json; charset=utf-8");
         httpPost.addHeader(Constant.APP_ID, appId);
-        httpPost.addHeader(Constant.TIME_STAMP, timestamp);
+        httpPost.addHeader(Constant.TIMESTAMP, timestamp);
         httpPost.addHeader(Constant.NONCE, nonce);
+        httpPost.addHeader(Constant.VALID, valid);
+        httpPost.addHeader("token", token);
+        httpPost.addHeader("Content-Type", "application/json; charset=utf-8");
         if (null != bodyParams) {
             httpPost.setEntity(new StringEntity(JSON.toJSONString(bodyParams), "utf-8"));
             sb.append(JSON.toJSONString(bodyParams, SerializerFeature.MapSortField));

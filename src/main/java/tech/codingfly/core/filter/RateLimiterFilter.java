@@ -153,7 +153,6 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     }
 
     private void assemblyResponse(HttpServletResponse response) throws IOException {
-        response.setStatus(500);
         response.setContentType("application/json; charset=utf-8");
         response.getOutputStream().write(errorMsgBytes);
     }

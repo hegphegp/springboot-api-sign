@@ -14,6 +14,7 @@ public class TestController {
     public Map get() {
         Map map = new HashMap();
         map.put("111", UUID.randomUUID().toString());
+        map.put("code", 200);
         return map;
     }
 
@@ -21,6 +22,7 @@ public class TestController {
     public Map post(@RequestBody Map params) {
         Map map = new HashMap();
         map.put("111", UUID.randomUUID().toString());
+        map.put("code", 200);
         return map;
     }
 

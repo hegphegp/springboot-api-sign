@@ -16,6 +16,7 @@ import java.util.TreeMap;
 
 public class SignUtils {
     private static final Logger logger = LoggerFactory.getLogger(SignUtils.class);
+
     /**
      @Autowired
      private RedisTemplate redisTemplate;
@@ -25,26 +26,42 @@ public class SignUtils {
      * 校验Header上的参数-验证是否传入值
      * 有个很重要的一点，就是对此请求进行时间验证，如果大于10分钟表示此链接已经超时，防止别人来到这个链接去请求。这个就是防止盗链。
      */
-    public static boolean headerParamsIsValid(HttpServletRequest request) {
+    public static boolean headerParamsIsValid(boolean checkToken, HttpServletRequest request) {
         if (StringUtils.isAnyBlank(request.getHeader(Constant.APP_ID), request.getHeader(Constant.NONCE),
-                request.getHeader(Constant.SIGN), request.getHeader(Constant.TIME_STAMP))) {
-            logger.debug("请求头签名四个参数有为空");
+                request.getHeader(Constant.SIGN), request.getHeader(Constant.TIMESTAMP), request.getHeader(Constant.VALID))) {
+            logger.debug("请求头签名参数或者valid为空");
             return false;
+        }
+        if (checkToken) {
+            if (StringUtils.isBlank(request.getHeader(Constant.TOKEN))) {
+                logger.debug("请求头token为空");
+                return false;
+            }
         }
 
         //时间戳,增加链接的有效时间,超过阈值,即失效
-        String timeStamp = request.getHeader(Constant.TIME_STAMP);
+        String timeStamp = request.getHeader(Constant.TIMESTAMP);
         if (StringUtils.isNumeric(timeStamp)==false) {
             logger.debug("请求头时间戳参数不是数字");
             return false;
         }
 
         long diff = System.currentTimeMillis() - Long.parseLong(timeStamp);
-        boolean result = (diff > 1000 * 60 * 10 || diff < -1000 * 60 * 10)? false:true;
-        if (result==false) {
+        if (diff > 1000 * 60 * 10 || diff < -1000 * 60 * 10) {
             logger.debug("请求头时间戳已失效");
+            return false;
         }
-        return result;
+        // 因为token和appId都要先查一次数据，如果别人每次传的token和appId都不一样，会导致请求全打到redis和数据库
+        String appId = request.getHeader(Constant.APP_ID);
+        String valid = request.getHeader(Constant.VALID);
+        if (checkToken) {
+            String token = request.getHeader(Constant.TOKEN);
+            // md5(token+appId+时间戳)是否等于valid
+            return valid.equals(DigestUtils.md5DigestAsHex((token + appId + timeStamp).getBytes()));
+        } else {
+            // md5(appId+时间戳)是否等于valid
+            return valid.equals(DigestUtils.md5DigestAsHex((appId + timeStamp).getBytes()));
+        }
     }
 
     public static boolean checkMd5Hash(String originStr, String sign) {
@@ -59,7 +76,7 @@ public class SignUtils {
      */
     public static StringBuilder getHeaderSignParams(HttpServletRequest request) {
         return new StringBuilder(Constant.APP_ID+request.getHeader(Constant.APP_ID) +
-                Constant.TIME_STAMP+request.getHeader(Constant.TIME_STAMP) +
+                Constant.TIMESTAMP +request.getHeader(Constant.TIMESTAMP) +
                 Constant.NONCE+request.getHeader(Constant.NONCE));
     }
 
