@@ -4,6 +4,8 @@ import com.google.common.cache.Cache;
 import org.springframework.util.StringUtils;
 import tech.codingfly.core.constant.Constant;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * 这个task是当个线程池的线程执行的
  */
@@ -75,18 +77,18 @@ public class CounterTask implements Runnable {
         }
     }
 
-    public static void recordTimes(String ip, Cache<String, Integer> ipVisitCountCache, Integer ipMaxVisitCount, Cache<String, Boolean> blackIpsCache,
-                                   Long userId, Cache<Long, Integer> userIdVisitCountCache, Integer userIdMaxVisitCount, Cache<Long, Boolean> blackUserIdsCache) {
+    public static void recordTimes(String ip, Cache<String, AtomicInteger> ipVisitCountCache, Integer ipMaxVisitCount, Cache<String, Boolean> blackIpsCache,
+                                   Long userId, Cache<Long, AtomicInteger> userIdVisitCountCache, Integer userIdMaxVisitCount, Cache<Long, Boolean> blackUserIdsCache) {
         if (StringUtils.hasText(ip)) {
-            Integer count = ipVisitCountCache.getIfPresent(ip);
-            ipVisitCountCache.put(ip, ++count);
+            AtomicInteger atomicInteger = ipVisitCountCache.getIfPresent(ip);
+            int count = atomicInteger.incrementAndGet();
             if (count>=ipMaxVisitCount) {
                 blackIpsCache.put(ip, true);
             }
         }
         if (userId!=null) {
-            Integer count = userIdVisitCountCache.getIfPresent(userId);
-            userIdVisitCountCache.put(userId, ++count);
+            AtomicInteger atomicInteger = userIdVisitCountCache.getIfPresent(userId);
+            int count = atomicInteger.incrementAndGet();
             if (count>=userIdMaxVisitCount) {
                 blackUserIdsCache.put(userId, true);
             }

@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Constant {
     /** 应用id */
@@ -20,6 +21,14 @@ public class Constant {
     /** 用timestamp加密token，看token是否被篡改，防止前端每次用随机数作为token，让后端不停在redis校验token是否存在，浪费性能 */
     public static final String VALID="valid";
     public static final String TOKEN ="token";
+
+    //    public static RedisTemplate redisTemplate;
+    public static Cache<String, Long> tokenCacheMap = CacheBuilder.newBuilder()
+            .concurrencyLevel(6) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
+            .expireAfterWrite(60, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
+            .initialCapacity(32) // 设置缓存容器的初始容量为32
+            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
+            .build();
 
     public static Map<String, String> appIdMap = new HashMap();
 
@@ -59,29 +68,29 @@ public class Constant {
     public static Integer fifteenMinuteUserIdMaxVisitCount = 1750;
 
     // 记录访问次数
-    public static Cache<String, Integer> oneSecond1IpVisitCountCache = buildIpVisitCountCache(1);
-    public static Cache<String, Integer> oneSecond2IpVisitCountCache = buildIpVisitCountCache(1);
-    public static Cache<String, Integer> oneSecond3IpVisitCountCache = buildIpVisitCountCache(1);
-    public static Cache<String, Integer> fiveSecond1IpVisitCountCache = buildIpVisitCountCache(4);
-    public static Cache<String, Integer> fiveSecond2IpVisitCountCache = buildIpVisitCountCache(4);
-    public static Cache<String, Integer> thirtySecond1IpVisitCountCache = buildIpVisitCountCache(28);
-    public static Cache<String, Integer> thirtySecond2IpVisitCountCache = buildIpVisitCountCache(28);
-    public static Cache<String, Integer> threeMinute1IpVisitCountCache = buildIpVisitCountCache(178);
-    public static Cache<String, Integer> threeMinute2IpVisitCountCache = buildIpVisitCountCache(178);
-    public static Cache<String, Integer> fifteenMinute1IpVisitCountCache = buildIpVisitCountCache(898);
-    public static Cache<String, Integer> fifteenMinute2IpVisitCountCache = buildIpVisitCountCache(898);
+    public static Cache<String, AtomicInteger> oneSecond1IpVisitCountCache = buildIpVisitCountCache(1);
+    public static Cache<String, AtomicInteger> oneSecond2IpVisitCountCache = buildIpVisitCountCache(1);
+    public static Cache<String, AtomicInteger> oneSecond3IpVisitCountCache = buildIpVisitCountCache(1);
+    public static Cache<String, AtomicInteger> fiveSecond1IpVisitCountCache = buildIpVisitCountCache(4);
+    public static Cache<String, AtomicInteger> fiveSecond2IpVisitCountCache = buildIpVisitCountCache(4);
+    public static Cache<String, AtomicInteger> thirtySecond1IpVisitCountCache = buildIpVisitCountCache(28);
+    public static Cache<String, AtomicInteger> thirtySecond2IpVisitCountCache = buildIpVisitCountCache(28);
+    public static Cache<String, AtomicInteger> threeMinute1IpVisitCountCache = buildIpVisitCountCache(178);
+    public static Cache<String, AtomicInteger> threeMinute2IpVisitCountCache = buildIpVisitCountCache(178);
+    public static Cache<String, AtomicInteger> fifteenMinute1IpVisitCountCache = buildIpVisitCountCache(898);
+    public static Cache<String, AtomicInteger> fifteenMinute2IpVisitCountCache = buildIpVisitCountCache(898);
 
-    public static Cache<Long, Integer> oneSecond1UserIdVisitCountCache = buildUserIdVisitCountCache(1);
-    public static Cache<Long, Integer> oneSecond2UserIdVisitCountCache = buildUserIdVisitCountCache(1);
-    public static Cache<Long, Integer> oneSecond3UserIdVisitCountCache = buildUserIdVisitCountCache(1);
-    public static Cache<Long, Integer> fiveSecond1UserIdVisitCountCache = buildUserIdVisitCountCache(4);
-    public static Cache<Long, Integer> fiveSecond2UserIdVisitCountCache = buildUserIdVisitCountCache(4);
-    public static Cache<Long, Integer> thirtySecond1UserIdVisitCountCache = buildUserIdVisitCountCache(28);
-    public static Cache<Long, Integer> thirtySecond2UserIdVisitCountCache = buildUserIdVisitCountCache(28);
-    public static Cache<Long, Integer> threeMinute1UserIdVisitCountCache = buildUserIdVisitCountCache(178);
-    public static Cache<Long, Integer> threeMinute2UserIdVisitCountCache = buildUserIdVisitCountCache(178);
-    public static Cache<Long, Integer> fifteenMinute1UserIdVisitCountCache = buildUserIdVisitCountCache(895);
-    public static Cache<Long, Integer> fifteenMinute2UserIdVisitCountCache = buildUserIdVisitCountCache(895);
+    public static Cache<Long, AtomicInteger> oneSecond1UserIdVisitCountCache = buildUserIdVisitCountCache(1);
+    public static Cache<Long, AtomicInteger> oneSecond2UserIdVisitCountCache = buildUserIdVisitCountCache(1);
+    public static Cache<Long, AtomicInteger> oneSecond3UserIdVisitCountCache = buildUserIdVisitCountCache(1);
+    public static Cache<Long, AtomicInteger> fiveSecond1UserIdVisitCountCache = buildUserIdVisitCountCache(4);
+    public static Cache<Long, AtomicInteger> fiveSecond2UserIdVisitCountCache = buildUserIdVisitCountCache(4);
+    public static Cache<Long, AtomicInteger> thirtySecond1UserIdVisitCountCache = buildUserIdVisitCountCache(28);
+    public static Cache<Long, AtomicInteger> thirtySecond2UserIdVisitCountCache = buildUserIdVisitCountCache(28);
+    public static Cache<Long, AtomicInteger> threeMinute1UserIdVisitCountCache = buildUserIdVisitCountCache(178);
+    public static Cache<Long, AtomicInteger> threeMinute2UserIdVisitCountCache = buildUserIdVisitCountCache(178);
+    public static Cache<Long, AtomicInteger> fifteenMinute1UserIdVisitCountCache = buildUserIdVisitCountCache(895);
+    public static Cache<Long, AtomicInteger> fifteenMinute2UserIdVisitCountCache = buildUserIdVisitCountCache(895);
 
     static {
         appIdMap.put("zs001", "asd123fhg3b7fgh7dfg");
@@ -106,22 +115,32 @@ public class Constant {
                 .build();
     }
 
-    public static Cache<String, Integer> buildIpVisitCountCache(int expireSecond) {
+    public static Cache<String, AtomicInteger> buildIpVisitCountCache(int expireSecond) {
         return CacheBuilder.newBuilder()
                 .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
                 .expireAfterWrite(expireSecond, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
                 .initialCapacity(32) // 设置缓存容器的初始容量为32
                 .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-                .build();
+                .build(new CacheLoader<String, AtomicInteger>() {
+                    @Override
+                    public AtomicInteger load(String key) throws Exception {
+                        return new AtomicInteger(0);
+                    }
+                });
     }
 
-    public static Cache<Long, Integer> buildUserIdVisitCountCache(int expireSecond) {
+    public static Cache<Long, AtomicInteger> buildUserIdVisitCountCache(int expireSecond) {
         return CacheBuilder.newBuilder()
                 .concurrencyLevel(1) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
                 .expireAfterWrite(expireSecond, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
                 .initialCapacity(32) // 设置缓存容器的初始容量为32
                 .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
-                .build();
+                .build(new CacheLoader<Long, AtomicInteger>() {
+                    @Override
+                    public AtomicInteger load(Long key) throws Exception {
+                        return new AtomicInteger(0);
+                    }
+                });
     }
 
     public static void initIpRateLimiterCache(Double oneIpRateLimiter) {
@@ -132,8 +151,8 @@ public class Constant {
                 .concurrencyLevel(8)
                 // 当缓存项在指定的时间段内没有被读或写就会被回收
                 .expireAfterAccess(120, TimeUnit.SECONDS)
-                // 设置缓存容器的初始容量为10
-                .initialCapacity(10)
+                // 设置缓存容器的初始容量为32
+                .initialCapacity(32)
                 // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
                 .maximumSize(10000)
                 // 设置要统计缓存的命中率
@@ -154,8 +173,6 @@ public class Constant {
                 });
         }
     }
-
-//    public static RedisTemplate redisTemplate;
 
     public static ApplicationContext applicationContext;
 
