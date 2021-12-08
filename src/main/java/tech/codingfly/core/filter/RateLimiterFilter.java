@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import tech.codingfly.core.constant.Constant;
 import tech.codingfly.core.util.ServletUtils;
+import tech.codingfly.core.util.SignUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -49,6 +51,9 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     // 完全匹配的URL的Map
     private Set<String> directUrls = new HashSet();
 
+    // 白名单，不需要验证token，这种URL禁止使用通配符URL，例如/user/{userId}
+    public static final Set<String> tokenWhiteList = new HashSet();
+
     public RateLimiterFilter(Double oneSecondRateLimiter, Double oneSecondOneUrlRateLimiter,
                              Double oneSecondOneIpRateLimiter, ApplicationContext applicationContext) {
         // 初始化IP访问次数限制的工具类
@@ -75,6 +80,10 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        if (SignUtils.headerTokenAppIdTimeSignIsValid(true, request)==false) {
+
+        }
         String ip = ServletUtils.getCurrentRequestOriginIp(request);
         // 全局限流，等待5毫秒
         boolean result = globalRateLimiter.tryAcquire(5, TimeUnit.MICROSECONDS);

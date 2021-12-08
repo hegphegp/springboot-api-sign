@@ -44,10 +44,13 @@ public class SignUtils {
             logger.debug("请求头nonce长度过长为空");
             return false;
         }
-        //时间戳,增加链接的有效时间,超过阈值,即失效
+        return headerTokenAppIdTimeSignIsValid(checkToken, request);
+    }
+
+    public static boolean headerTimeIsValid(HttpServletRequest request) {
         String timeStamp = request.getHeader(Constant.TIMESTAMP);
         if (StringUtils.isNumeric(timeStamp)==false) {
-            logger.debug("请求头时间戳参数不是数字");
+            logger.debug("请求头时间戳参数不是数字或者空");
             return false;
         }
 
@@ -56,14 +59,30 @@ public class SignUtils {
             logger.debug("请求头时间戳已失效");
             return false;
         }
-        // 因为token和appId都要先查一次数据，如果别人每次传的token和appId都不一样，会导致请求全打到redis和数据库
+        return true;
+    }
+
+    public static boolean headerTokenAppIdTimeSignIsValid(boolean checkToken, HttpServletRequest request) {
+        //时间戳,增加链接的有效时间,超过阈值,即失效
+        if (headerTimeIsValid(request)==false) {
+            return false;
+        }
         String appId = request.getHeader(Constant.APP_ID);
+        String timeStamp = request.getHeader(Constant.TIMESTAMP);
+        String token = request.getHeader(Constant.TOKEN);
         String valid = request.getHeader(Constant.VALID);
         if (checkToken) {
-            String token = request.getHeader(Constant.TOKEN);
+            if (StringUtils.isAnyBlank(appId, token, timeStamp, valid)) {
+                logger.debug("请求头appId，token，timestamp或者valid参数为空");
+                return false;
+            }
             // md5(token+appId+时间戳)是否等于valid
             return valid.equals(DigestUtils.md5DigestAsHex((token + appId + timeStamp).getBytes()));
         } else {
+            if (StringUtils.isAnyBlank(appId, timeStamp, valid)) {
+                logger.debug("请求头appId，timestamp或者valid参数为空");
+                return false;
+            }
             // md5(appId+时间戳)是否等于valid
             return valid.equals(DigestUtils.md5DigestAsHex((appId + timeStamp).getBytes()));
         }
