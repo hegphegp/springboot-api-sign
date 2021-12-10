@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import tech.codingfly.core.constant.Constant;
+import tech.codingfly.core.filter.SignResultEnum;
 import tech.codingfly.core.http.BodyReaderHttpServletRequestWrapper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,67 +25,58 @@ public class SignUtils {
 
     /**
      * 校验Header上的参数-验证是否传入值
-     * 有个很重要的一点，就是对此请求进行时间验证，如果大于10分钟表示此链接已经超时，防止别人来到这个链接去请求。这个就是防止盗链。
+     * 有个很重要的一点，就是对此请求进行时间验证，如果大于10分钟表示此链接已经超时，防止别人拿到这个链接去请求。这个就是防止盗链。
      */
-    public static boolean headerParamsIsValid(boolean checkToken, HttpServletRequest request) {
+    public static SignResultEnum headerParamsIsValid(boolean checkToken, HttpServletRequest request) {
+        String appId = request.getHeader(Constant.APP_ID);
+        String sign = request.getHeader(Constant.SIGN);
+        String valid = request.getHeader(Constant.VALID);
         String nonce = request.getHeader(Constant.NONCE);
-        if (StringUtils.isAnyBlank(request.getHeader(Constant.APP_ID), request.getHeader(Constant.SIGN),
-                nonce, request.getHeader(Constant.TIMESTAMP), request.getHeader(Constant.VALID))) {
-            logger.debug("请求头签名参数或者valid为空");
-            return false;
-        }
-        if (checkToken) {
-            if (StringUtils.isBlank(request.getHeader(Constant.TOKEN))) {
-                logger.debug("请求头token为空");
-                return false;
-            }
+        String timeStamp = request.getHeader(Constant.TIMESTAMP);
+        if (StringUtils.isAnyBlank(appId, sign, nonce, timeStamp, valid)) {
+            logger.debug("请求头参数appId，sign，valid，nonce，timeStamp存在为空");
+            return SignResultEnum.ERROR;
         }
         // 因为 nonce 流水号存到内存里面，为减少内存使用，限制nonce最大长度为uuid转成两个long后再转base64转换的长度
         if (nonce.length()>23) {
             logger.debug("请求头nonce长度过长为空");
-            return false;
+            return SignResultEnum.ERROR;
         }
-        return headerTokenAppIdTimeSignIsValid(checkToken, request);
-    }
+        Boolean exists = Constant.hasUseReqNonceCache.getIfPresent(request.getHeader(Constant.APP_ID)+nonce);
+        if (exists!=null) {
+            logger.debug("请求被重放");
+            return SignResultEnum.ERROR;
+        }
 
-    public static boolean headerTimeIsValid(HttpServletRequest request) {
-        String timeStamp = request.getHeader(Constant.TIMESTAMP);
-        if (StringUtils.isNumeric(timeStamp)==false) {
+        if (!StringUtils.isNumeric(timeStamp)) {
             logger.debug("请求头时间戳参数不是数字或者空");
-            return false;
+            return SignResultEnum.ERROR;
         }
 
         long diff = System.currentTimeMillis() - Long.parseLong(timeStamp);
         if (diff > 1000 * 60 * 10 || diff < -1000 * 60 * 10) {
             logger.debug("请求头时间戳已失效");
-            return false;
+            return SignResultEnum.ERROR;
         }
-        return true;
-    }
 
-    public static boolean headerTokenAppIdTimeSignIsValid(boolean checkToken, HttpServletRequest request) {
-        //时间戳,增加链接的有效时间,超过阈值,即失效
-        if (headerTimeIsValid(request)==false) {
-            return false;
+        String appSecret = Constant.appIdMap.get(request.getHeader(Constant.APP_ID));
+        if (StringUtils.isBlank(appSecret)) {
+            logger.debug("请求头appId不正确，获取的appSecret为空");
+            return SignResultEnum.APPID_ERR;
         }
-        String appId = request.getHeader(Constant.APP_ID);
-        String timeStamp = request.getHeader(Constant.TIMESTAMP);
-        String token = request.getHeader(Constant.TOKEN);
-        String valid = request.getHeader(Constant.VALID);
         if (checkToken) {
-            if (StringUtils.isAnyBlank(appId, token, timeStamp, valid)) {
-                logger.debug("请求头appId，token，timestamp或者valid参数为空");
-                return false;
+            String token = request.getHeader(Constant.TOKEN);
+            if (StringUtils.isBlank(token)) {
+                logger.debug("请求头token为空");
+                return SignResultEnum.ERROR;
             }
-            // md5(token+appId+时间戳)是否等于valid
-            return valid.equals(DigestUtils.md5DigestAsHex((token + appId + timeStamp).getBytes()));
+            // md5(token+appSecret+时间戳)是否等于valid
+            boolean result = valid.equals(DigestUtils.md5DigestAsHex((token + appSecret + timeStamp).getBytes()));
+            return result? SignResultEnum.SUCCESS:SignResultEnum.ERROR;
         } else {
-            if (StringUtils.isAnyBlank(appId, timeStamp, valid)) {
-                logger.debug("请求头appId，timestamp或者valid参数为空");
-                return false;
-            }
-            // md5(appId+时间戳)是否等于valid
-            return valid.equals(DigestUtils.md5DigestAsHex((appId + timeStamp).getBytes()));
+            // md5(appSecret+时间戳)是否等于valid
+            boolean result = valid.equals(DigestUtils.md5DigestAsHex((appSecret + timeStamp).getBytes()));
+            return result? SignResultEnum.SUCCESS:SignResultEnum.ERROR;
         }
     }
 

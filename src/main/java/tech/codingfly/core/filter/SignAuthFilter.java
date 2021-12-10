@@ -2,7 +2,6 @@ package tech.codingfly.core.filter;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,6 +17,10 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ * 为了避免前端不断传不存在不同的appId过来，导致每次都查询数据库的appId是否存在，造成数据库压力
+ * 01) 启动的时候加载所有的appId和appSecret，然后定时任务，每隔1小时查一次数据库，把appId和appSecret全部查出来放到map里面，避免每次请求的appId都不一样，每次都查库
+ * public static Map<String, String> appMap = new HashMap();
+ * 02) 每隔1小时查一次数据库随机淘汰1半的appId和appSecret，保正appId经常动态更新，即使别人获取到appId，这个也是临时能用的，不是永久
  * 验签工具
  * 请求URL 加上 header参数key和value拼接，加上url参数key和value拼接，加上按key排序号的请求体body的json字符串，合成一个字符串，然后校验md5
  */
@@ -51,29 +54,9 @@ public class SignAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        boolean needCheckToken = !notCheckTokenList.contains(request.getRequestURI());
-
-        //校验头部是否有验签参数
-        boolean isValid = SignUtils.headerParamsIsValid(needCheckToken, request);
-        if (isValid==false) {
-            logger.error("签名校验失败");
-            assemblyResponse(801, "签名校验失败", response);
-            return;
-        }
-        Boolean exists = Constant.hasUseReqNonceCache.getIfPresent(request.getHeader(Constant.APP_ID)+request.getHeader(Constant.NONCE));
-        if (exists!=null) {
-            logger.error("请求被重放");
-            assemblyResponse(802, "请求被重放", response);
-            return;
-        }
         Constant.hasUseReqNonceCache.put(request.getHeader(Constant.APP_ID)+request.getHeader(Constant.NONCE), true);
         //根据调用传递的appId获取对应的appSecret（应用密钥）
         String appSecret = Constant.appIdMap.get(request.getHeader(Constant.APP_ID));
-        if (StringUtils.isBlank(appSecret)) {
-            logger.error("应用appId不正确");
-            assemblyResponse(803, "签名校验失败", response);
-            return;
-        }
         //appSecret（应用密钥）存在
         StringBuilder sb = SignUtils.combineHeaderRequestParam(request);
         String contentType = request.getContentType()!=null? request.getContentType().toLowerCase():"";

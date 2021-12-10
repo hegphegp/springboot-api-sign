@@ -1,5 +1,6 @@
 package tech.codingfly.core.filter;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -7,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.util.DigestUtils;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -35,6 +35,9 @@ import java.util.stream.Collectors;
  */
 public class RateLimiterFilter extends OncePerRequestFilter {
     public final static ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    // 不需要校验token的
+    public static final Set<String> notCheckTokenList = new HashSet();
 
     private final Logger logger = LoggerFactory.getLogger(RateLimiterFilter.class);
 
@@ -80,9 +83,18 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-
-        if (SignUtils.headerTokenAppIdTimeSignIsValid(true, request)==false) {
-
+        boolean needCheckToken = !notCheckTokenList.contains(request.getRequestURI());
+        //校验头部是否有验签参数
+        SignResultEnum signResult = SignUtils.headerParamsIsValid(needCheckToken, request);
+        if (signResult==SignResultEnum.ERROR) {
+            logger.error("签名校验失败");
+            assemblyResponse(801, "签名校验失败", response);
+            return;
+        }
+        if (signResult==SignResultEnum.APPID_ERR) {
+            logger.error("请求头appId不正确");
+            assemblyResponse(802, "签名校验失败", response);
+            return;
         }
         String ip = ServletUtils.getCurrentRequestOriginIp(request);
         // 全局限流，等待5毫秒
@@ -164,6 +176,15 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     private void assemblyResponse(HttpServletResponse response) throws IOException {
         response.setContentType("application/json; charset=utf-8");
         response.getOutputStream().write(errorMsgBytes);
+    }
+
+    private void assemblyResponse(Integer code, String msg, HttpServletResponse response) throws IOException {
+        Map map = new HashMap() {{
+            put("code", code);
+            put("msg", msg);
+        }};
+        response.setContentType("application/json;charset=utf-8");
+        response.getOutputStream().write(JSON.toJSONString(map).getBytes());
     }
 
 }
