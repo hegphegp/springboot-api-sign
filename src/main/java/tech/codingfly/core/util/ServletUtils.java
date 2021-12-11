@@ -1,13 +1,19 @@
 package tech.codingfly.core.util;
 
+import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import tech.codingfly.core.constant.ResponseCodeEnum;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class ServletUtils {
@@ -133,7 +139,7 @@ public class ServletUtils {
      * 获取当前请求的原始客户端IP地址
      * @return
      */
-    public static String getCurrentRequestOriginIp(HttpServletRequest request) {
+    public static String getOriginIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (StringUtils.isEmpty(ip) || "unknown".equalsIgnoreCase(ip)) {
             if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
@@ -162,6 +168,21 @@ public class ServletUtils {
             }
         }
         return ip;
+    }
+
+    public static void assemblyResponse(ResponseCodeEnum responseCode, HttpServletResponse response) throws IOException {
+        logger.error(responseCode.getRealErr());
+        Map map = new HashMap() {{
+            put("code", responseCode.getCode());
+            put("msg", responseCode.getMsg());
+        }};
+        response.setContentType("application/json;charset=utf-8");
+        response.getOutputStream().write(JSON.toJSONString(map).getBytes());
+    }
+
+    public static  void assemblyResponse(HttpServletResponse response, byte[] jsonMsgBytes) throws IOException {
+        response.setContentType("application/json; charset=utf-8");
+        response.getOutputStream().write(jsonMsgBytes);
     }
 
 }

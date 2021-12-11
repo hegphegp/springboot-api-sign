@@ -1,6 +1,6 @@
 package tech.codingfly.core.filter;
 
-import com.alibaba.fastjson.JSON;
+import com.google.common.cache.Cache;
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +15,8 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import tech.codingfly.core.constant.Constant;
+import static tech.codingfly.core.constant.Constant.*;
+import tech.codingfly.core.constant.ResponseCodeEnum;
 import tech.codingfly.core.util.ServletUtils;
 import tech.codingfly.core.util.SignUtils;
 
@@ -36,9 +38,6 @@ import java.util.stream.Collectors;
 public class RateLimiterFilter extends OncePerRequestFilter {
     public final static ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    // 不需要校验token的
-    public static final Set<String> notCheckTokenList = new HashSet();
-
     private final Logger logger = LoggerFactory.getLogger(RateLimiterFilter.class);
 
     private byte[] errorMsgBytes = "{\"code\":500,\"msg\":\"限流\"}".getBytes();
@@ -48,11 +47,11 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     private RateLimiter globalRateLimiter = null;
     private RateLimiter otherUrlsRateLimiter = RateLimiter.create(100d);
 
-    private PathMatcher pathMatcher = new AntPathMatcher();
+    public final static PathMatcher pathMatcher = new AntPathMatcher();
     // URL有通配符, 或者占位符的Map
-    private Set<String> patternUrls = new HashSet();
+    public final static Set<String> patternUrls = new HashSet();
     // 完全匹配的URL的Map
-    private Set<String> directUrls = new HashSet();
+    public final static Set<String> directUrls = new HashSet();
 
     // 白名单，不需要验证token，这种URL禁止使用通配符URL，例如/user/{userId}
     public static final Set<String> tokenWhiteList = new HashSet();
@@ -83,39 +82,49 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        boolean needCheckToken = !notCheckTokenList.contains(request.getRequestURI());
+        String ip = ServletUtils.getOriginIp(request);
+        if (StringUtils.isBlank(ip)) {
+            ServletUtils.assemblyResponse(ResponseCodeEnum.NO_IP, response);
+            return;
+        }
+
+        boolean ipBlackList = blackListIp(ip);
+        VisitCounter.recordIpTimes(System.currentTimeMillis(), ip);
+        if (ipBlackList) {
+            ServletUtils.assemblyResponse(ResponseCodeEnum.IP_BLACKLIST, response);
+            return;
+        }
+
+        boolean needCheckToken = !tokenWhiteList.contains(request.getRequestURI());
         //校验头部是否有验签参数
         SignResultEnum signResult = SignUtils.headerParamsIsValid(needCheckToken, request);
         if (signResult==SignResultEnum.ERROR) {
-            logger.error("签名校验失败");
-            assemblyResponse(801, "签名校验失败", response);
+            ServletUtils.assemblyResponse(ResponseCodeEnum.SIGN_ERR, response);
             return;
         }
         if (signResult==SignResultEnum.APPID_ERR) {
-            logger.error("请求头appId不正确");
-            assemblyResponse(802, "签名校验失败", response);
+            ServletUtils.assemblyResponse(ResponseCodeEnum.APP_IP_ERR, response);
             return;
         }
-        String ip = ServletUtils.getCurrentRequestOriginIp(request);
         // 全局限流，等待5毫秒
         boolean result = globalRateLimiter.tryAcquire(5, TimeUnit.MICROSECONDS);
         if (result==false) {
-            assemblyResponse(response);
+            ServletUtils.assemblyResponse(response, errorMsgBytes);
             logger.error("触发全局限流");
             return;
         }
 
-        if (StringUtils.isNotBlank(ip)) {
-            try {
-                result = Constant.ipRateLimiterCache.get(ip).tryAcquire(5, TimeUnit.MICROSECONDS);
-                if (result==false) {
-                    assemblyResponse(response);
-                    logger.error("触发单个IP的访问限流");
-                    return;
-                }
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+        try {
+            result = Constant.ipRateLimiterCache.get(ip).tryAcquire(5, TimeUnit.MICROSECONDS);
+            if (result==false) {
+                ServletUtils.assemblyResponse(response, errorMsgBytes);
+                logger.error("触发单个IP的访问限流");
+                return;
             }
+        } catch (ExecutionException e) {
+            logger.error(e.getMessage(), e);
+            ServletUtils.assemblyResponse(ResponseCodeEnum.ERR, response);
+            return;
         }
         String requestURI = request.getRequestURI();
 //        logger.debug("请求的URL是  "+request.getMethod()+" "+requestURI);
@@ -135,11 +144,30 @@ public class RateLimiterFilter extends OncePerRequestFilter {
         // 等待5毫秒
         result = urlRateLimiter.tryAcquire(5, TimeUnit.MICROSECONDS);
         if (result==false) {
-            assemblyResponse(response);
+            ServletUtils.assemblyResponse(response, errorMsgBytes);
             logger.error("触发URL限流");
             return;
         }
         filterChain.doFilter(request, response);
+    }
+
+    public boolean blackListIp(String ip) {
+        if (oneMinuteBlackIpsCache.getIfPresent(ip)!=null) {
+            return true;
+        }
+        if (fiveMinuteBlackIpsCache.getIfPresent(ip)!=null) {
+            return true;
+        }
+        if (fifteenMinuteBlackIpsCache.getIfPresent(ip)!=null) {
+            return true;
+        }
+        if (oneHourBlackIpsCache.getIfPresent(ip)!=null) {
+            return true;
+        }
+        if (oneDayBlackIpsCache.getIfPresent(ip)!=null) {
+            return true;
+        }
+        return false;
     }
 
     public List<String> getMatchingPatterns(String methodAndRequestURI) {
@@ -171,20 +199,6 @@ public class RateLimiterFilter extends OncePerRequestFilter {
 
     public Set<String> getMethodStr(Set<RequestMethod> set) {
         return ObjectUtils.isEmpty(set)? new HashSet(Arrays.asList("GET","HEAD","POST","PUT","PATCH","DELETE","OPTIONS","TRACE")):set.stream().map(o->o.name()).collect(Collectors.toSet());
-    }
-
-    private void assemblyResponse(HttpServletResponse response) throws IOException {
-        response.setContentType("application/json; charset=utf-8");
-        response.getOutputStream().write(errorMsgBytes);
-    }
-
-    private void assemblyResponse(Integer code, String msg, HttpServletResponse response) throws IOException {
-        Map map = new HashMap() {{
-            put("code", code);
-            put("msg", msg);
-        }};
-        response.setContentType("application/json;charset=utf-8");
-        response.getOutputStream().write(JSON.toJSONString(map).getBytes());
     }
 
 }
