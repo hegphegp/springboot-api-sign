@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import tech.codingfly.core.constant.Constant;
-import tech.codingfly.core.filter.SignResultEnum;
+import tech.codingfly.core.enums.SignResultEnum;
 import tech.codingfly.core.http.BodyReaderHttpServletRequestWrapper;
 
 import javax.servlet.http.HttpServletRequest;

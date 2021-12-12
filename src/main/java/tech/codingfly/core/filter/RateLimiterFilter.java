@@ -1,6 +1,5 @@
 package tech.codingfly.core.filter;
 
-import com.google.common.cache.Cache;
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +15,10 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import tech.codingfly.core.constant.Constant;
 import static tech.codingfly.core.constant.Constant.*;
-import tech.codingfly.core.constant.ResponseCodeEnum;
+
+import tech.codingfly.core.enums.ResponseCodeEnum;
+import tech.codingfly.core.enums.SignResultEnum;
+import tech.codingfly.core.model.User;
 import tech.codingfly.core.util.ServletUtils;
 import tech.codingfly.core.util.SignUtils;
 
@@ -89,6 +91,7 @@ public class RateLimiterFilter extends OncePerRequestFilter {
         }
 
         boolean ipBlackList = blackListIp(ip);
+        // 记录IP访问次数
         VisitCounter.recordIpTimes(System.currentTimeMillis(), ip);
         if (ipBlackList) {
             ServletUtils.assemblyResponse(ResponseCodeEnum.IP_BLACKLIST, response);
@@ -106,6 +109,26 @@ public class RateLimiterFilter extends OncePerRequestFilter {
             ServletUtils.assemblyResponse(ResponseCodeEnum.APP_IP_ERR, response);
             return;
         }
+        if (needCheckToken) {
+            // 记录userId访问次数
+            String token = request.getHeader(Constant.TOKEN);
+            User user = Constant.userTokenCache.getIfPresent(token);
+            if (user==null) {
+                ServletUtils.assemblyResponse(ResponseCodeEnum.AUTHORIZATION_ERR, response);
+                logger.error("token无效");
+                return;
+            }
+
+            Long userId = user.getId();
+            boolean userIdBlackList = blackListUserId(userId);
+            // 记录userId访问次数
+            VisitCounter.recordUserIdTimes(System.currentTimeMillis(), userId);
+            if (userIdBlackList) {
+                ServletUtils.assemblyResponse(ResponseCodeEnum.USER_ID_BLACKLIST, response);
+                return;
+            }
+        }
+
         // 全局限流，等待5毫秒
         boolean result = globalRateLimiter.tryAcquire(5, TimeUnit.MICROSECONDS);
         if (result==false) {
@@ -165,6 +188,25 @@ public class RateLimiterFilter extends OncePerRequestFilter {
             return true;
         }
         if (oneDayBlackIpsCache.getIfPresent(ip)!=null) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean blackListUserId(Long userId) {
+        if (oneMinuteBlackUserIdsCache.getIfPresent(userId)!=null) {
+            return true;
+        }
+        if (fiveMinuteBlackUserIdsCache.getIfPresent(userId)!=null) {
+            return true;
+        }
+        if (fifteenMinuteBlackUserIdsCache.getIfPresent(userId)!=null) {
+            return true;
+        }
+        if (oneHourBlackUserIdsCache.getIfPresent(userId)!=null) {
+            return true;
+        }
+        if (oneDayBlackUserIdsCache.getIfPresent(userId)!=null) {
             return true;
         }
         return false;

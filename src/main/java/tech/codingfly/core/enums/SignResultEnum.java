@@ -1,4 +1,4 @@
-package tech.codingfly.core.filter;
+package tech.codingfly.core.enums;
 
 public enum SignResultEnum {
     SUCCESS,

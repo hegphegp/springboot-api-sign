@@ -3,6 +3,8 @@ package tech.codingfly.core.constant;
 import com.google.common.cache.*;
 import com.google.common.util.concurrent.RateLimiter;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.redis.core.RedisTemplate;
+import tech.codingfly.core.model.User;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +24,8 @@ public class Constant {
     public static final String VALID="valid";
     public static final String TOKEN ="token";
 
-    //    public static RedisTemplate redisTemplate;
+    public static final String redisTokenPrefix = "user:token:";
+    public static RedisTemplate<String, Object> redisTemplate;
     public static Cache<String, Long> tokenCacheMap = CacheBuilder.newBuilder()
             .concurrencyLevel(6) // 设置并发级别为1，并发级别是指可以同时写缓存的线程数
             .expireAfterWrite(60, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
@@ -41,6 +44,19 @@ public class Constant {
             .initialCapacity(1000) // 设置缓存容器的初始容量为1000
             .maximumSize(100000) // 设置缓存最大容量为100000，超过100000之后就会按照LRU最近虽少使用算法来移除缓存项
             .build();
+
+    // 记录TOKEN的有效期
+    public static Cache<String, User> userTokenCache = CacheBuilder.newBuilder()
+            .concurrencyLevel(8) // 设置并发级别为8，并发级别是指可以同时写缓存的线程数
+            .expireAfterWrite(60*10, TimeUnit.SECONDS) // 当缓存项在指定的时间段内没有被写就会被回收
+            .initialCapacity(1000) // 设置缓存容器的初始容量为1000
+            .maximumSize(10000) // 设置缓存最大容量为10000，超过10000之后就会按照LRU最近虽少使用算法来移除缓存项
+            .build(new CacheLoader<String, User>() {
+                @Override
+                public User load(String key) throws Exception {
+                    return (User)redisTemplate.opsForValue().get(redisTokenPrefix+key);
+                }
+            });
 
     public static Cache<String, Boolean> oneMinuteBlackIpsCache = buildBlackIpsCache(60);
     public static Cache<String, Boolean> fiveMinuteBlackIpsCache = buildBlackIpsCache(300);
