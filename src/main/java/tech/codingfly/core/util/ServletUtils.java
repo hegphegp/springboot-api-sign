@@ -23,7 +23,7 @@ public class ServletUtils {
         Enumeration<String> params = request.getParameterNames();
         while (params.hasMoreElements()) {
             String paramName = params.nextElement();
-            logger.debug(paramName + "  ===>>>  " + request.getHeader(paramName));
+            logger.debug(paramName + "  ===>>>  " + request.getParameter(paramName));
         }
     }
 
